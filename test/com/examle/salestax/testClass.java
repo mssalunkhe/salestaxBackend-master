@@ -3,6 +3,7 @@ package com.examle.salestax;
 
 import com.example.salestax.model.Product;
 import com.example.salestax.model.ProductType;
+import com.example.salestax.service.ShoppingCartService;
 import com.example.salestax.service.TaxService;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +21,7 @@ public class testClass {
     BufferedReader reader;
     TaxService taxService;
 
+
     public testClass(String fileName) {
 
         try {
@@ -28,6 +30,7 @@ public class testClass {
             throw new RuntimeException(e);
         }
         taxService = new TaxService();
+
 
     }
 
@@ -70,10 +73,11 @@ public class testClass {
             }
             Double price = Double.parseDouble(units[3]);
             Double salesTax = Double.parseDouble(units[4]);
+            Double shelfPrice = Double.parseDouble(units[5]);
 
             product = new Product(units[0], price, type, isImported);
 
-            checkSalesTaxAndShelfPrice(product, Double.parseDouble(units[4]), Double.parseDouble(units[5]));
+            checkSalesTaxAndShelfPrice(product, salesTax, shelfPrice);
 
         } catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Array out of bound exception");
@@ -94,16 +98,18 @@ public class testClass {
     public void checkNextReceipt() throws Exception {
         double totalSalesTax = 0;
         double totalBillAmount = 0;
-        Map<Product, Integer> shoppingCart = new HashMap<>();
-
+        ShoppingCartService shoppingCartService= new ShoppingCartService();
 
         Product product;
         String line = this.readNextTestLine();
-        try {
+
+       try {
             while (Boolean.TRUE) {
 
                 String[] units = line.split(",");
                 if (units[0].equals("Total")) {
+                    totalSalesTax=shoppingCartService.getTotalTax();
+                    totalBillAmount=shoppingCartService.getTotalBillAmount();
                     assertEquals(Double.parseDouble((units[4])), totalSalesTax, 0.01);
                     assertEquals(Double.parseDouble(units[5]), totalBillAmount, 0.01);
                     return;
@@ -112,12 +118,11 @@ public class testClass {
                     product = this.prepareProduct(line);
                     double salesTax = (taxService.getTaxFor(product));
                     double shelfPrice = product.getOriginalPrice() + salesTax;
-                    totalSalesTax += salesTax;
-                    totalBillAmount += shelfPrice;
+                    shoppingCartService.addProduct(product,1);
                     line = this.readNextTestLine();
                 }
             }
-        } catch (NullPointerException e) {
+       } catch (NullPointerException e) {
             System.out.println("Input file not properly formatted. ");
         }
     }

@@ -12,7 +12,7 @@ public class ShoppingCartService {
     TaxService taxService = new TaxService();
 
     public void addProduct(Product product, int quantity) {
-        shoppingCart.put(product, shoppingCart.get(product) + quantity);
+        shoppingCart.put(product, shoppingCart.get(product)==null?quantity:shoppingCart.get(product) + quantity);
     }
 
     public Map<Product, Integer> getShoppingCart() {
